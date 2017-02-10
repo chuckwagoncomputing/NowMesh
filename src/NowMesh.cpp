@@ -285,12 +285,18 @@ void ICACHE_FLASH_ATTR NowMesh::receiveData(unsigned char* mac, unsigned char* d
   nowmeshDebug("Bad Message: too many tokens", LEVEL_UNLIKELY_ERROR);
   return;
  }
+ uint8_t self[6];
+ wifi_get_macaddr(0, self);
  // Loop through stored messages and make sure we haven't seen this message already.
  // If we keep forwarding previously seen messages, the pipes will quickly clog.
  int msg_i = 0;
  while (msg_i < STORED_MESSAGES && message_store[msg_i].id > 0) {
   if (message_store[msg_i].id == message_id && memcmp(message_store[msg_i].originator, originator, 6) == 0) {
    nowmeshDebug("Message is already stored", LEVEL_NORMAL);
+   return;
+  }
+  else if (memcmp(originator, self, 6) == 0) {
+   nowmeshDebug("We sent this message", LEVEL_NORMAL);
    return;
   }
   msg_i++;
@@ -313,8 +319,6 @@ void ICACHE_FLASH_ATTR NowMesh::receiveData(unsigned char* mac, unsigned char* d
  memcpy(message_store[0].sender, mac, 6);
  message_store[0].id = message_id;
  system_soft_wdt_feed();
- uint8_t self[6];
- wifi_get_macaddr(0, self);
  // If we are the target
  if (memcmp(target, self, 6) == 0) {
   // Call user facing received message callback.
