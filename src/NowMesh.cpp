@@ -287,16 +287,16 @@ void ICACHE_FLASH_ATTR NowMesh::receiveData(unsigned char* mac, unsigned char* d
  }
  uint8_t self[6];
  wifi_get_macaddr(0, self);
+ if (memcmp(originator, self, 6) == 0) {
+  nowmeshDebug("We sent this message", LEVEL_NORMAL);
+  return;
+ }
  // Loop through stored messages and make sure we haven't seen this message already.
  // If we keep forwarding previously seen messages, the pipes will quickly clog.
  int msg_i = 0;
  while (msg_i < STORED_MESSAGES && message_store[msg_i].id > 0) {
   if (message_store[msg_i].id == message_id && memcmp(message_store[msg_i].originator, originator, 6) == 0) {
    nowmeshDebug("Message is already stored", LEVEL_NORMAL);
-   return;
-  }
-  else if (memcmp(originator, self, 6) == 0) {
-   nowmeshDebug("We sent this message", LEVEL_NORMAL);
    return;
   }
   msg_i++;
